@@ -8,7 +8,7 @@ const {
     DB_NAME,
 } = process.env
 
-if (!DB_HOST || !DB_PORT || !DB_USER){
+if (!DB_HOST || DB_PASSWORD === undefined ||!DB_USER || DB_NAME){
     throw new Error("Required environment variables are missing");
 }
 
