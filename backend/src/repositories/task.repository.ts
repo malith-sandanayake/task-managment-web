@@ -4,7 +4,7 @@ import type {
 } from "mysql2";
 
 import { db } from "../config/database.js";
-import type { Task } from "../types/task.types.js";
+import type { Task, TaskQuery } from "../types/task.types.js";
 import type {
   CreateTaskInput,
   UpdateTaskInput,
@@ -114,7 +114,36 @@ export async function findTaskById(
 // Retrieve all tasks for a user
 export async function findTasksByUser(
   userId: number,
+  query: TaskQuery,
 ): Promise<Task[]> {
+  const conditions: string[] = ["user_id = ?"];
+  const values: QueryValue[] = [userId];
+
+  if (query.search) {
+    conditions.push("title LIKE ?");
+    values.push(`%${query.search}%`);
+  }
+
+  if (query.status) {
+    conditions.push("status = ?");
+    values.push(query.status);
+  }
+
+  if (query.priority) {
+    conditions.push("priority = ?");
+    values.push(query.priority);
+  }
+
+  let orderBy = "created_at DESC";
+
+  if (query.sort === "oldest") {
+    orderBy = "created_at ASC";
+  }
+
+  if (query.sort === "dueDate") {
+    orderBy = "due_date ASC";
+  }
+
   const [rows] = await db.execute<TaskRow[]>(
     `
     SELECT
@@ -128,10 +157,10 @@ export async function findTasksByUser(
       created_at,
       updated_at
     FROM tasks
-    WHERE user_id = ?
-    ORDER BY created_at DESC
+    WHERE ${conditions.join(" AND ")}
+    ORDER BY ${orderBy}
     `,
-    [userId],
+    values,
   );
 
   return rows.map(mapTaskRow);

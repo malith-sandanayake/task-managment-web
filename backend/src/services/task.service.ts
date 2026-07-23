@@ -1,4 +1,4 @@
-import type { Task } from "../types/task.types.js";
+import type { Task, TaskQuery } from "../types/task.types.js";
 import type {
   CreateTaskInput,
   UpdateTaskInput,
@@ -23,8 +23,9 @@ export async function createTaskService(
 
 export async function getTasksService(
   userId: number,
+  query: TaskQuery,
 ): Promise<Task[]> {
-  return findTasksByUser(userId);
+  return findTasksByUser(userId, query);
 }
 
 export async function getTaskService(

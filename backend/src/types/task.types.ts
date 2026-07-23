@@ -16,3 +16,10 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface TaskQuery {
+  search?: string;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  sort?: "newest" | "oldest" | "dueDate";
+}

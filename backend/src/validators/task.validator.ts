@@ -53,3 +53,15 @@ export const taskIdSchema = z.object({
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
+
+export const taskQuerySchema = z.object({
+  search: z.string().trim().optional(),
+
+  status: statusSchema.optional(),
+
+  priority: prioritySchema.optional(),
+
+  sort: z
+    .enum(["newest", "oldest", "dueDate"])
+    .default("newest"),
+});

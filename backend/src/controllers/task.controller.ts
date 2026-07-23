@@ -1,6 +1,7 @@
 import type { Response } from "express";
 
 import type { AuthenticatedRequest } from "../middleware/auth.middleware.js";
+import type { TaskQuery } from "../types/task.types.js";
 import {
   createTaskService,
   deleteTaskService,
@@ -11,6 +12,7 @@ import {
 import {
   createTaskSchema,
   taskIdSchema,
+  taskQuerySchema,
   updateTaskSchema,
 } from "../validators/task.validator.js";
 
@@ -64,7 +66,34 @@ export async function getTasksController(
     return;
   }
 
-  const tasks = await getTasksService(userId);
+  const queryResult = taskQuerySchema.safeParse(req.query);
+
+  if (!queryResult.success) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid query parameters",
+      errors: queryResult.error.flatten().fieldErrors,
+    });
+    return;
+  }
+
+  const query: TaskQuery = {
+    sort: queryResult.data.sort,
+  };
+
+  if (queryResult.data.search !== undefined) {
+    query.search = queryResult.data.search;
+  }
+
+  if (queryResult.data.status !== undefined) {
+    query.status = queryResult.data.status;
+  }
+
+  if (queryResult.data.priority !== undefined) {
+    query.priority = queryResult.data.priority;
+  }
+
+  const tasks = await getTasksService(userId, query);
 
   res.status(200).json({
     success: true,
