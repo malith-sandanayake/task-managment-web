@@ -24,7 +24,15 @@ interface TaskRow extends RowDataPacket {
 
 type QueryValue = string | number | Date | null;
 
-function formatDate(value: Date | string): string {
+function formatDateOnly(value: Date | string): string {
+  if (typeof value === "string") {
+    return value.slice(0, 10);
+  }
+
+  return value.toISOString().slice(0, 10);
+}
+
+function formatTimestamp(value: Date | string): string {
   return value instanceof Date
     ? value.toISOString()
     : value;
@@ -38,9 +46,9 @@ function mapTaskRow(task: TaskRow): Task {
     description: task.description,
     priority: task.priority,
     status: task.status,
-    dueDate: formatDate(task.due_date),
-    createdAt: formatDate(task.created_at),
-    updatedAt: formatDate(task.updated_at),
+    dueDate: formatDateOnly(task.due_date),
+    createdAt: formatTimestamp(task.created_at),
+    updatedAt: formatTimestamp(task.updated_at),
   };
 }
 
