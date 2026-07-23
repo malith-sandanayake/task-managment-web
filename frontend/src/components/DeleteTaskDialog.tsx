@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+
 import type {
   Task,
 } from "../types/task.types";
@@ -17,8 +19,54 @@ export function DeleteTaskDialog({
   onConfirm,
   onCancel,
 }: DeleteTaskDialogProps): JSX.Element {
+  useEffect(() => {
+    const previousOverflow =
+      document.body.style.overflow;
+
+    document.body.style.overflow =
+      "hidden";
+
+    function handleEscape(
+      event: KeyboardEvent,
+    ): void {
+      if (
+        event.key === "Escape" &&
+        !isDeleting
+      ) {
+        onCancel();
+      }
+    }
+
+    window.addEventListener(
+      "keydown",
+      handleEscape,
+    );
+
+    return () => {
+      document.body.style.overflow =
+        previousOverflow;
+
+      window.removeEventListener(
+        "keydown",
+        handleEscape,
+      );
+    };
+  }, [isDeleting, onCancel]);
+
   return (
-    <div className="modal-backdrop">
+    <div
+      className="modal-backdrop"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (
+          event.target ===
+            event.currentTarget &&
+          !isDeleting
+        ) {
+          onCancel();
+        }
+      }}
+    >
       <div
         className="delete-dialog"
         role="alertdialog"

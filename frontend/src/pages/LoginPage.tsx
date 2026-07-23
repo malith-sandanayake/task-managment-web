@@ -5,10 +5,12 @@ import {
 } from "react";
 import {
   Navigate,
+  useLocation,
   useNavigate,
 } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 
 interface LoginErrors {
   email?: string;
@@ -16,13 +18,20 @@ interface LoginErrors {
   general?: string;
 }
 
+interface LoginLocationState {
+  sessionExpired?: boolean;
+}
+
 export function LoginPage(): JSX.Element {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const {
     isAuthenticated,
     login,
   } = useAuth();
+
+  const { showToast } = useToast();
 
   const [email, setEmail] = useState(
     "admin@test.com",
@@ -32,26 +41,44 @@ export function LoginPage(): JSX.Element {
     "123456",
   );
 
-  const [errors, setErrors] = useState<LoginErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] =
+    useState<LoginErrors>({});
+
+  const [isSubmitting, setIsSubmitting] =
+    useState(false);
+
+  const locationState =
+    location.state as
+      | LoginLocationState
+      | null;
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return (
+      <Navigate
+        to="/dashboard"
+        replace
+      />
+    );
   }
 
   function validateForm(): LoginErrors {
     const nextErrors: LoginErrors = {};
 
     if (!email.trim()) {
-      nextErrors.email = "Email is required";
+      nextErrors.email =
+        "Email is required";
     } else if (
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+        email,
+      )
     ) {
-      nextErrors.email = "Enter a valid email address";
+      nextErrors.email =
+        "Enter a valid email address";
     }
 
     if (!password) {
-      nextErrors.password = "Password is required";
+      nextErrors.password =
+        "Password is required";
     }
 
     return nextErrors;
@@ -62,9 +89,13 @@ export function LoginPage(): JSX.Element {
   ): Promise<void> {
     event.preventDefault();
 
-    const validationErrors = validateForm();
+    const validationErrors =
+      validateForm();
 
-    if (Object.keys(validationErrors).length > 0) {
+    if (
+      Object.keys(validationErrors).length >
+      0
+    ) {
       setErrors(validationErrors);
       return;
     }
@@ -77,6 +108,11 @@ export function LoginPage(): JSX.Element {
         email: email.trim(),
         password,
       });
+
+      showToast(
+        "Signed in successfully.",
+        "success",
+      );
 
       navigate("/dashboard", {
         replace: true,
@@ -94,7 +130,8 @@ export function LoginPage(): JSX.Element {
         });
       } else {
         setErrors({
-          general: "Something went wrong",
+          general:
+            "Something went wrong",
         });
       }
     } finally {
@@ -113,9 +150,20 @@ export function LoginPage(): JSX.Element {
           <h1>Welcome back</h1>
 
           <p>
-            Sign in to manage your daily tasks.
+            Sign in to manage your daily
+            tasks.
           </p>
         </header>
+
+        {locationState?.sessionExpired && (
+          <div
+            className="form-alert"
+            role="alert"
+          >
+            Your session expired. Please sign
+            in again.
+          </div>
+        )}
 
         <form
           className="login-form"
@@ -145,7 +193,9 @@ export function LoginPage(): JSX.Element {
               autoComplete="email"
               value={email}
               onChange={(event) => {
-                setEmail(event.target.value);
+                setEmail(
+                  event.target.value,
+                );
 
                 if (errors.email) {
                   setErrors((current) => ({
@@ -154,7 +204,9 @@ export function LoginPage(): JSX.Element {
                   }));
                 }
               }}
-              aria-invalid={Boolean(errors.email)}
+              aria-invalid={Boolean(
+                errors.email,
+              )}
               aria-describedby={
                 errors.email
                   ? "email-error"
@@ -184,7 +236,9 @@ export function LoginPage(): JSX.Element {
               autoComplete="current-password"
               value={password}
               onChange={(event) => {
-                setPassword(event.target.value);
+                setPassword(
+                  event.target.value,
+                );
 
                 if (errors.password) {
                   setErrors((current) => ({
@@ -193,7 +247,9 @@ export function LoginPage(): JSX.Element {
                   }));
                 }
               }}
-              aria-invalid={Boolean(errors.password)}
+              aria-invalid={Boolean(
+                errors.password,
+              )}
               aria-describedby={
                 errors.password
                   ? "password-error"
@@ -223,9 +279,7 @@ export function LoginPage(): JSX.Element {
         </form>
 
         <footer className="login-footer">
-          <p>
-            Default credentials:
-          </p>
+          <p>Default credentials:</p>
 
           <code>
             admin@test.com / 123456

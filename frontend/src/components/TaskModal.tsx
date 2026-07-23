@@ -1,3 +1,8 @@
+import {
+  useEffect,
+  type KeyboardEvent,
+} from "react";
+
 import type {
   CreateTaskInput,
   Task,
@@ -21,12 +26,56 @@ export function TaskModal({
   onSubmit,
   onClose,
 }: TaskModalProps): JSX.Element {
+  useEffect(() => {
+    const previousOverflow =
+      document.body.style.overflow;
+
+    document.body.style.overflow =
+      "hidden";
+
+    function handleEscape(
+      event: globalThis.KeyboardEvent,
+    ): void {
+      if (
+        event.key === "Escape" &&
+        !isSubmitting
+      ) {
+        onClose();
+      }
+    }
+
+    window.addEventListener(
+      "keydown",
+      handleEscape,
+    );
+
+    return () => {
+      document.body.style.overflow =
+        previousOverflow;
+
+      window.removeEventListener(
+        "keydown",
+        handleEscape,
+      );
+    };
+  }, [isSubmitting, onClose]);
+
+  function stopKeyboardPropagation(
+    event: KeyboardEvent<HTMLDivElement>,
+  ): void {
+    event.stopPropagation();
+  }
+
   return (
     <div
       className="modal-backdrop"
       role="presentation"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
+        if (
+          event.target ===
+            event.currentTarget &&
+          !isSubmitting
+        ) {
           onClose();
         }
       }}
@@ -36,7 +85,12 @@ export function TaskModal({
         role="dialog"
         aria-modal="true"
         aria-label={
-          task ? "Edit task" : "Create task"
+          task
+            ? "Edit task"
+            : "Create task"
+        }
+        onKeyDown={
+          stopKeyboardPropagation
         }
       >
         <TaskForm

@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 
 import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
+import { ToastProvider } from "./context/ToastContext";
 import "./index.css";
 
 createRoot(
@@ -11,9 +12,11 @@ createRoot(
 ).render(
   <StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </ToastProvider>
     </BrowserRouter>
   </StrictMode>,
 );

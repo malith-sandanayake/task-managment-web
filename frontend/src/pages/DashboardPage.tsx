@@ -19,6 +19,7 @@ import { TaskFilters } from "../components/TaskFilters";
 import { TaskList } from "../components/TaskList";
 import { TaskModal } from "../components/TaskModal";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import type {
   CreateTaskInput,
   DashboardStats,
@@ -64,6 +65,8 @@ export function DashboardPage(): JSX.Element {
     logout,
     user,
   } = useAuth();
+
+  const { showToast } = useToast();
 
   const [stats, setStats] =
     useState<DashboardStats>(emptyStats);
@@ -217,6 +220,13 @@ export function DashboardPage(): JSX.Element {
         await createTaskRequest(input);
       }
 
+      showToast(
+        selectedTask
+          ? "Task updated successfully."
+          : "Task created successfully.",
+        "success",
+      );
+
       closeTaskModal();
       await refreshDashboard();
     } catch (error: unknown) {
@@ -262,6 +272,11 @@ export function DashboardPage(): JSX.Element {
         taskToDelete.id,
       );
 
+      showToast(
+        "Task deleted successfully.",
+        "success",
+      );
+
       setTaskToDelete(null);
       await refreshDashboard();
     } catch (error: unknown) {
@@ -289,6 +304,11 @@ export function DashboardPage(): JSX.Element {
         },
       );
 
+      showToast(
+        "Task marked as completed.",
+        "success",
+      );
+
       await refreshDashboard();
     } catch (error: unknown) {
       setTasksError(
@@ -304,6 +324,11 @@ export function DashboardPage(): JSX.Element {
 
   function handleLogout(): void {
     logout();
+
+    showToast(
+      "You have been logged out.",
+      "info",
+    );
 
     navigate("/login", {
       replace: true,
