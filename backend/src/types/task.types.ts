@@ -23,3 +23,11 @@ export interface TaskQuery {
   priority?: TaskPriority;
   sort?: "newest" | "oldest" | "dueDate";
 }
+
+export interface DashboardStats {
+  total: number;
+  pending: number;
+  inProgress: number;
+  completed: number;
+  overdue: number;
+}

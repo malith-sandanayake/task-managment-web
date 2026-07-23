@@ -4,7 +4,7 @@ import type {
 } from "mysql2";
 
 import { db } from "../config/database.js";
-import type { Task, TaskQuery } from "../types/task.types.js";
+import type { Task, TaskQuery,DashboardStats } from "../types/task.types.js";
 import type {
   CreateTaskInput,
   UpdateTaskInput,
@@ -23,6 +23,14 @@ interface TaskRow extends RowDataPacket {
 }
 
 type QueryValue = string | number | Date | null;
+
+interface DashboardStatsRow extends RowDataPacket {
+  total: number;
+  pending: number;
+  in_progress: number;
+  completed: number;
+  overdue: number;
+}
 
 function formatDateOnly(value: Date | string): string {
   if (typeof value === "string") {
@@ -232,4 +240,40 @@ export async function deleteTaskById(
   );
 
   return result.affectedRows > 0;
+}
+
+export async function getDashboardStatsByUser(
+  userId: number,
+): Promise<DashboardStats> {
+  const [rows] = await db.execute<DashboardStatsRow[]>(
+    `
+    SELECT
+      COUNT(*) AS total,
+
+      SUM(status = 'PENDING') AS pending,
+
+      SUM(status = 'IN_PROGRESS') AS in_progress,
+
+      SUM(status = 'COMPLETED') AS completed,
+
+      SUM(
+        due_date < CURDATE()
+        AND status <> 'COMPLETED'
+      ) AS overdue
+
+    FROM tasks
+    WHERE user_id = ?
+    `,
+    [userId],
+  );
+
+  const stats = rows[0];
+
+  return {
+    total: Number(stats?.total ?? 0),
+    pending: Number(stats?.pending ?? 0),
+    inProgress: Number(stats?.in_progress ?? 0),
+    completed: Number(stats?.completed ?? 0),
+    overdue: Number(stats?.overdue ?? 0),
+  };
 }

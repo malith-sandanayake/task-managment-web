@@ -1,4 +1,4 @@
-import type { Task, TaskQuery } from "../types/task.types.js";
+import type { Task, TaskQuery, DashboardStats } from "../types/task.types.js";
 import type {
   CreateTaskInput,
   UpdateTaskInput,
@@ -9,6 +9,7 @@ import {
   deleteTaskById,
   findTaskById,
   findTasksByUser,
+  getDashboardStatsByUser,
   updateTaskById,
 } from "../repositories/task.repository.js";
 
@@ -58,4 +59,10 @@ export async function deleteTaskService(
   userId: number,
 ): Promise<boolean> {
   return deleteTaskById(taskId, userId);
+}
+
+export async function getDashboardStatsService(
+  userId: number,
+): Promise<DashboardStats> {
+  return getDashboardStatsByUser(userId);
 }

@@ -3,6 +3,7 @@ import { Router } from "express";
 import {
   createTaskController,
   deleteTaskController,
+  getDashboardStatsController,
   getTaskController,
   getTasksController,
   updateTaskController,
@@ -12,6 +13,8 @@ import { requireAuth } from "../middleware/auth.middleware.js";
 const router = Router();
 
 router.use(requireAuth);
+
+router.get("/dashboard/stats", getDashboardStatsController);
 
 router.post("/", createTaskController);
 router.get("/", getTasksController);
