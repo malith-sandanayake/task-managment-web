@@ -6,8 +6,12 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
-    "seed": "tsx src/seed.js"
+    "seed": "tsx src/seed.js",
+    "db:schema": "mysql -u root -p < ../database/schema.sql",
+    "db:setup": "npm run db:schema && npm run seed"
   },
   "keywords": [],
   "author": "",

@@ -5,6 +5,7 @@ import type { TaskQuery } from "../types/task.types.js";
 import {
   createTaskService,
   deleteTaskService,
+  getDashboardStatsService,
   getTaskService,
   getTasksService,
   updateTaskService,
@@ -243,5 +244,29 @@ export async function deleteTaskController(
   res.status(200).json({
     success: true,
     message: "Task deleted successfully",
+  });
+}
+
+export async function getDashboardStatsController(
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    res.status(401).json({
+      success: false,
+      message: "Unauthorized",
+    });
+    return;
+  }
+
+  const stats = await getDashboardStatsService(userId);
+
+  res.status(200).json({
+    success: true,
+    data: {
+      stats,
+    },
   });
 }
