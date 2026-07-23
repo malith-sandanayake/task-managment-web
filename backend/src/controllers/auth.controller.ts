@@ -1,7 +1,8 @@
 import type { Request, Response } from "express";
 import { loginSchema } from "../validators/auth.validator.js";
-import { loginUser } from "../services/auth.service.js";
+import { getUserById, loginUser } from "../services/auth.service.js";
 import { generateToken } from "../utils/jwt.js";
+import type { AuthenticatedRequest } from "../middleware/auth.middleware.js";
 
 export async function login(req: Request, res: Response): Promise <void>{
     // validate data based on instructions in loginSchema zod object -> return true/ false
@@ -40,4 +41,38 @@ export async function login(req: Request, res: Response): Promise <void>{
         },
     });
 
+}
+
+export async function getCurrentUser(
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    res.status(401).json({
+      success: false,
+      message: "Unauthorized",
+    });
+
+    return;
+  }
+
+  const user = await getUserById(userId);
+
+  if (!user) {
+    res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+
+    return;
+  }
+
+  res.status(200).json({
+    success: true,
+    data: {
+      user,
+    },
+  });
 }

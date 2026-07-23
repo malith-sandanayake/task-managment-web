@@ -9,7 +9,15 @@ interface UserRow extends RowDataPacket {
         password: string;
 }
 
-interface SafeUser {
+// safeuser do not need return Password
+interface SafeUserRow extends RowDataPacket {
+  id: number;
+  name: string;
+  email: string;
+}
+
+// for use of otherfiels
+export interface SafeUser {
     id: number;
     name: string;
     email: string;
@@ -46,4 +54,22 @@ export async function loginUser(email: string, password: string): Promise <SafeU
         name: user.name,
         email: user.email,
     };
+}
+
+
+// query user by id 
+export async function getUserById(
+  userId: number,
+): Promise<SafeUser | null> {
+  const [rows] = await db.execute<SafeUserRow[]>(
+    `
+    SELECT id, name, email
+    FROM users
+    WHERE id = ?
+    LIMIT 1
+    `,
+    [userId],
+  );
+
+  return rows[0] ?? null;
 }
