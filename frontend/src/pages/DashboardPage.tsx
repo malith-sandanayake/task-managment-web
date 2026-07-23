@@ -6,11 +6,18 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { getDashboardStatsRequest } from "../api/task.api";
+import {
+  getDashboardStatsRequest,
+  getTasksRequest,
+} from "../api/task.api";
 import { StatCard } from "../components/StatCard";
+import { TaskFilters } from "../components/TaskFilters";
+import { TaskList } from "../components/TaskList";
 import { useAuth } from "../context/AuthContext";
 import type {
   DashboardStats,
+  Task,
+  TaskQuery,
 } from "../types/task.types";
 
 const emptyStats: DashboardStats = {
@@ -20,6 +27,29 @@ const emptyStats: DashboardStats = {
   completed: 0,
   overdue: 0,
 };
+
+const initialTaskQuery: TaskQuery = {
+  search: "",
+  status: undefined,
+  priority: undefined,
+  sort: "newest",
+};
+
+function getErrorMessage(
+  error: unknown,
+  fallback: string,
+): string {
+  if (axios.isAxiosError(error)) {
+    const message =
+      error.response?.data?.message;
+
+    if (typeof message === "string") {
+      return message;
+    }
+  }
+
+  return fallback;
+}
 
 export function DashboardPage(): JSX.Element {
   const navigate = useNavigate();
@@ -32,45 +62,84 @@ export function DashboardPage(): JSX.Element {
   const [stats, setStats] =
     useState<DashboardStats>(emptyStats);
 
-  const [isLoading, setIsLoading] =
+  const [tasks, setTasks] =
+    useState<Task[]>([]);
+
+  const [taskQuery, setTaskQuery] =
+    useState<TaskQuery>(initialTaskQuery);
+
+  const [isStatsLoading, setIsStatsLoading] =
     useState(true);
 
-  const [error, setError] =
+  const [isTasksLoading, setIsTasksLoading] =
+    useState(true);
+
+  const [statsError, setStatsError] =
+    useState<string | null>(null);
+
+  const [tasksError, setTasksError] =
     useState<string | null>(null);
 
   const loadStats =
     useCallback(async (): Promise<void> => {
-      setIsLoading(true);
-      setError(null);
+      setIsStatsLoading(true);
+      setStatsError(null);
 
       try {
         const response =
           await getDashboardStatsRequest();
 
         setStats(response.data.stats);
-      } catch (requestError: unknown) {
-        if (axios.isAxiosError(requestError)) {
-          const message =
-            requestError.response?.data?.message;
-
-          setError(
-            typeof message === "string"
-              ? message
-              : "Unable to load dashboard statistics.",
-          );
-        } else {
-          setError(
+      } catch (error: unknown) {
+        setStatsError(
+          getErrorMessage(
+            error,
             "Unable to load dashboard statistics.",
-          );
-        }
+          ),
+        );
       } finally {
-        setIsLoading(false);
+        setIsStatsLoading(false);
       }
     }, []);
+
+  const loadTasks =
+    useCallback(async (): Promise<void> => {
+      setIsTasksLoading(true);
+      setTasksError(null);
+
+      try {
+        const response =
+          await getTasksRequest(taskQuery);
+
+        setTasks(response.data.tasks);
+      } catch (error: unknown) {
+        setTasksError(
+          getErrorMessage(
+            error,
+            "Unable to load tasks.",
+          ),
+        );
+      } finally {
+        setIsTasksLoading(false);
+      }
+    }, [taskQuery]);
 
   useEffect(() => {
     void loadStats();
   }, [loadStats]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(
+      () => {
+        void loadTasks();
+      },
+      300,
+    );
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [loadTasks]);
 
   function handleLogout(): void {
     logout();
@@ -124,20 +193,20 @@ export function DashboardPage(): JSX.Element {
               onClick={() => {
                 void loadStats();
               }}
-              disabled={isLoading}
+              disabled={isStatsLoading}
             >
-              {isLoading
+              {isStatsLoading
                 ? "Refreshing..."
                 : "Refresh"}
             </button>
           </div>
 
-          {error && (
+          {statsError && (
             <div
               className="dashboard-error"
               role="alert"
             >
-              <span>{error}</span>
+              <span>{statsError}</span>
 
               <button
                 type="button"
@@ -150,7 +219,7 @@ export function DashboardPage(): JSX.Element {
             </div>
           )}
 
-          {isLoading && !error ? (
+          {isStatsLoading && !statsError ? (
             <div
               className="dashboard-loading"
               role="status"
@@ -198,15 +267,28 @@ export function DashboardPage(): JSX.Element {
               <h2>Your tasks</h2>
 
               <p>
-                The task list will be added in the
-                next section.
+                Search, filter, and sort your tasks.
               </p>
             </div>
           </div>
 
-          <div className="task-placeholder">
-            Task list coming next.
-          </div>
+          <TaskFilters
+            query={taskQuery}
+            isLoading={isTasksLoading}
+            onChange={setTaskQuery}
+            onRefresh={() => {
+              void loadTasks();
+            }}
+          />
+
+          <TaskList
+            tasks={tasks}
+            isLoading={isTasksLoading}
+            error={tasksError}
+            onRetry={() => {
+              void loadTasks();
+            }}
+          />
         </section>
       </main>
     </div>
