@@ -33,13 +33,9 @@ export function LoginPage(): JSX.Element {
 
   const { showToast } = useToast();
 
-  const [email, setEmail] = useState(
-    "admin@test.com",
-  );
+  const [email, setEmail] = useState("");
 
-  const [password, setPassword] = useState(
-    "123456",
-  );
+  const [password, setPassword] = useState("");
 
   const [errors, setErrors] =
     useState<LoginErrors>({});
@@ -278,13 +274,7 @@ export function LoginPage(): JSX.Element {
           </button>
         </form>
 
-        <footer className="login-footer">
-          <p>Default credentials:</p>
 
-          <code>
-            admin@test.com / 123456
-          </code>
-        </footer>
       </section>
     </main>
   );
