@@ -22,4 +22,4 @@ async function startServer (): Promise<void>{
     }
 }
 
-void startServer;
+void startServer();
