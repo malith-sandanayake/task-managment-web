@@ -5,6 +5,7 @@ export async function getCurrentUser(
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> {
-  const _userId = req.user?.id;
-  res.status(501).json({ success: false, message: "Not implemented" });
-}
+  const userId = req.user?.id;
+
+  console.log(userId);
+}
