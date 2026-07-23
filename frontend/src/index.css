@@ -598,3 +598,179 @@ button:disabled {
     flex-direction: column;
   }
 }
+
+.create-task-button {
+  width: auto;
+  min-width: 140px;
+}
+
+.task-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.task-card__actions button {
+  width: auto;
+}
+
+.complete-button,
+.danger-button,
+.danger-outline-button {
+  padding: 10px 14px;
+  border-radius: 9px;
+  font-weight: 700;
+}
+
+.complete-button {
+  border: 1px solid #2d8f5d;
+  background: #2f9461;
+  color: #ffffff;
+}
+
+.complete-button:hover:not(:disabled) {
+  background: #287f53;
+}
+
+.danger-button {
+  border: 1px solid #b8343e;
+  background: #bd3540;
+  color: #ffffff;
+}
+
+.danger-button:hover:not(:disabled) {
+  background: #a82d37;
+}
+
+.danger-outline-button {
+  border: 1px solid #dc9da2;
+  background: #ffffff;
+  color: #ad303b;
+}
+
+.danger-outline-button:hover:not(:disabled) {
+  background: #fff1f2;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(18, 26, 43, 0.58);
+}
+
+.task-modal,
+.delete-dialog {
+  width: min(100%, 620px);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow:
+    0 24px 70px rgba(13, 20, 35, 0.28);
+}
+
+.task-form,
+.delete-dialog {
+  padding: 26px;
+}
+
+.modal-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.modal-heading h2,
+.delete-dialog h2 {
+  margin: 0 0 6px;
+}
+
+.modal-heading p,
+.delete-dialog p {
+  margin: 0;
+  color: #687389;
+  line-height: 1.55;
+}
+
+.modal-close {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: #eef1f6;
+  color: #3b465b;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.task-form {
+  display: grid;
+  gap: 18px;
+}
+
+.task-form-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.task-form textarea {
+  resize: vertical;
+}
+
+.task-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.task-submit-button {
+  width: auto;
+  min-width: 140px;
+}
+
+.delete-dialog {
+  width: min(100%, 460px);
+}
+
+.delete-dialog .form-alert {
+  margin-top: 18px;
+}
+
+@media (max-width: 620px) {
+  .create-task-button {
+    width: 100%;
+  }
+
+  .task-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .task-form-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .task-submit-button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .task-card__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .task-card__actions button {
+    width: 100%;
+  }
+}

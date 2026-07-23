@@ -7,14 +7,20 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import {
+  createTaskRequest,
+  deleteTaskRequest,
   getDashboardStatsRequest,
   getTasksRequest,
+  updateTaskRequest,
 } from "../api/task.api";
+import { DeleteTaskDialog } from "../components/DeleteTaskDialog";
 import { StatCard } from "../components/StatCard";
 import { TaskFilters } from "../components/TaskFilters";
 import { TaskList } from "../components/TaskList";
+import { TaskModal } from "../components/TaskModal";
 import { useAuth } from "../context/AuthContext";
 import type {
+  CreateTaskInput,
   DashboardStats,
   Task,
   TaskQuery,
@@ -80,6 +86,30 @@ export function DashboardPage(): JSX.Element {
   const [tasksError, setTasksError] =
     useState<string | null>(null);
 
+  const [isTaskModalOpen, setIsTaskModalOpen] =
+    useState(false);
+
+  const [selectedTask, setSelectedTask] =
+    useState<Task | null>(null);
+
+  const [taskToDelete, setTaskToDelete] =
+    useState<Task | null>(null);
+
+  const [isSubmittingTask, setIsSubmittingTask] =
+    useState(false);
+
+  const [isDeletingTask, setIsDeletingTask] =
+    useState(false);
+
+  const [taskFormError, setTaskFormError] =
+    useState<string | null>(null);
+
+  const [deleteError, setDeleteError] =
+    useState<string | null>(null);
+
+  const [updatingTaskId, setUpdatingTaskId] =
+    useState<number | null>(null);
+
   const loadStats =
     useCallback(async (): Promise<void> => {
       setIsStatsLoading(true);
@@ -124,6 +154,14 @@ export function DashboardPage(): JSX.Element {
       }
     }, [taskQuery]);
 
+  const refreshDashboard =
+    useCallback(async (): Promise<void> => {
+      await Promise.all([
+        loadStats(),
+        loadTasks(),
+      ]);
+    }, [loadStats, loadTasks]);
+
   useEffect(() => {
     void loadStats();
   }, [loadStats]);
@@ -140,6 +178,129 @@ export function DashboardPage(): JSX.Element {
       window.clearTimeout(timeoutId);
     };
   }, [loadTasks]);
+
+  function openCreateTask(): void {
+    setSelectedTask(null);
+    setTaskFormError(null);
+    setIsTaskModalOpen(true);
+  }
+
+  function openEditTask(task: Task): void {
+    setSelectedTask(task);
+    setTaskFormError(null);
+    setIsTaskModalOpen(true);
+  }
+
+  function closeTaskModal(): void {
+    if (isSubmittingTask) {
+      return;
+    }
+
+    setIsTaskModalOpen(false);
+    setSelectedTask(null);
+    setTaskFormError(null);
+  }
+
+  async function handleTaskSubmit(
+    input: CreateTaskInput,
+  ): Promise<void> {
+    setIsSubmittingTask(true);
+    setTaskFormError(null);
+
+    try {
+      if (selectedTask) {
+        await updateTaskRequest(
+          selectedTask.id,
+          input,
+        );
+      } else {
+        await createTaskRequest(input);
+      }
+
+      closeTaskModal();
+      await refreshDashboard();
+    } catch (error: unknown) {
+      setTaskFormError(
+        getErrorMessage(
+          error,
+          selectedTask
+            ? "Unable to update the task."
+            : "Unable to create the task.",
+        ),
+      );
+    } finally {
+      setIsSubmittingTask(false);
+    }
+  }
+
+  function openDeleteDialog(
+    task: Task,
+  ): void {
+    setTaskToDelete(task);
+    setDeleteError(null);
+  }
+
+  function closeDeleteDialog(): void {
+    if (isDeletingTask) {
+      return;
+    }
+
+    setTaskToDelete(null);
+    setDeleteError(null);
+  }
+
+  async function handleDeleteTask(): Promise<void> {
+    if (!taskToDelete) {
+      return;
+    }
+
+    setIsDeletingTask(true);
+    setDeleteError(null);
+
+    try {
+      await deleteTaskRequest(
+        taskToDelete.id,
+      );
+
+      setTaskToDelete(null);
+      await refreshDashboard();
+    } catch (error: unknown) {
+      setDeleteError(
+        getErrorMessage(
+          error,
+          "Unable to delete the task.",
+        ),
+      );
+    } finally {
+      setIsDeletingTask(false);
+    }
+  }
+
+  async function handleCompleteTask(
+    task: Task,
+  ): Promise<void> {
+    setUpdatingTaskId(task.id);
+
+    try {
+      await updateTaskRequest(
+        task.id,
+        {
+          status: "COMPLETED",
+        },
+      );
+
+      await refreshDashboard();
+    } catch (error: unknown) {
+      setTasksError(
+        getErrorMessage(
+          error,
+          "Unable to mark the task as completed.",
+        ),
+      );
+    } finally {
+      setUpdatingTaskId(null);
+    }
+  }
 
   function handleLogout(): void {
     logout();
@@ -267,9 +428,18 @@ export function DashboardPage(): JSX.Element {
               <h2>Your tasks</h2>
 
               <p>
-                Search, filter, and sort your tasks.
+                Search, filter, sort, and manage
+                your tasks.
               </p>
             </div>
+
+            <button
+              className="primary-button create-task-button"
+              type="button"
+              onClick={openCreateTask}
+            >
+              Create task
+            </button>
           </div>
 
           <TaskFilters
@@ -285,12 +455,36 @@ export function DashboardPage(): JSX.Element {
             tasks={tasks}
             isLoading={isTasksLoading}
             error={tasksError}
+            updatingTaskId={updatingTaskId}
             onRetry={() => {
               void loadTasks();
             }}
+            onEdit={openEditTask}
+            onDelete={openDeleteDialog}
+            onComplete={handleCompleteTask}
           />
         </section>
       </main>
+
+      {isTaskModalOpen && (
+        <TaskModal
+          task={selectedTask}
+          isSubmitting={isSubmittingTask}
+          error={taskFormError}
+          onSubmit={handleTaskSubmit}
+          onClose={closeTaskModal}
+        />
+      )}
+
+      {taskToDelete && (
+        <DeleteTaskDialog
+          task={taskToDelete}
+          isDeleting={isDeletingTask}
+          error={deleteError}
+          onConfirm={handleDeleteTask}
+          onCancel={closeDeleteDialog}
+        />
+      )}
     </div>
   );
 }

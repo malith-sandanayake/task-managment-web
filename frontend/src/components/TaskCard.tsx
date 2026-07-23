@@ -9,10 +9,20 @@ import {
 
 interface TaskCardProps {
   task: Task;
+  onEdit: (task: Task) => void;
+  onDelete: (task: Task) => void;
+  onComplete: (
+    task: Task,
+  ) => Promise<void>;
+  isUpdating: boolean;
 }
 
 export function TaskCard({
   task,
+  onEdit,
+  onDelete,
+  onComplete,
+  isUpdating,
 }: TaskCardProps): JSX.Element {
   const isOverdue =
     task.status !== "COMPLETED" &&
@@ -55,6 +65,45 @@ export function TaskCard({
           Due {formatDate(task.dueDate)}
           {isOverdue ? " · Overdue" : ""}
         </span>
+      </div>
+
+      <div className="task-card__actions">
+        {task.status !== "COMPLETED" && (
+          <button
+            className="complete-button"
+            type="button"
+            onClick={() => {
+              void onComplete(task);
+            }}
+            disabled={isUpdating}
+          >
+            {isUpdating
+              ? "Updating..."
+              : "Mark complete"}
+          </button>
+        )}
+
+        <button
+          className="secondary-button"
+          type="button"
+          onClick={() => {
+            onEdit(task);
+          }}
+          disabled={isUpdating}
+        >
+          Edit
+        </button>
+
+        <button
+          className="danger-outline-button"
+          type="button"
+          onClick={() => {
+            onDelete(task);
+          }}
+          disabled={isUpdating}
+        >
+          Delete
+        </button>
       </div>
     </article>
   );

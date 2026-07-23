@@ -8,14 +8,24 @@ interface TaskListProps {
   tasks: Task[];
   isLoading: boolean;
   error: string | null;
+  updatingTaskId: number | null;
   onRetry: () => void;
+  onEdit: (task: Task) => void;
+  onDelete: (task: Task) => void;
+  onComplete: (
+    task: Task,
+  ) => Promise<void>;
 }
 
 export function TaskList({
   tasks,
   isLoading,
   error,
+  updatingTaskId,
   onRetry,
+  onEdit,
+  onDelete,
+  onComplete,
 }: TaskListProps): JSX.Element {
   if (isLoading) {
     return (
@@ -60,6 +70,12 @@ export function TaskList({
         <TaskCard
           key={task.id}
           task={task}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onComplete={onComplete}
+          isUpdating={
+            updatingTaskId === task.id
+          }
         />
       ))}
     </div>
